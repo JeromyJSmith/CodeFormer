@@ -37,9 +37,7 @@ if __name__ == '__main__':
 
     sum_latent = np.zeros((codebook_size)).astype('float64')
     size_latent = 16
-    latent = {}
-    latent['orig'] = {}
-    latent['hflip'] = {}
+    latent = {'orig': {}, 'hflip': {}}
     for i in ['orig', 'hflip']:
     # for i in ['hflip']:
         for img_path in sorted(glob.glob(os.path.join(test_path, '*.[jp][pn]g'))):

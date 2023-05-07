@@ -28,7 +28,7 @@ if __name__ == '__main__':
     print('[NOTE] The input face images should be aligned and cropped to a resolution of 512x512.')
     if args.input_path.endswith(('jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG')): # input single img path
         input_img_list = [args.input_path]
-        result_root = f'results/test_colorization_img'
+        result_root = 'results/test_colorization_img'
     else: # input img folder
         if args.input_path.endswith('/'):  # solve when path ends with /
             args.input_path = args.input_path[:-1]
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         input_img_list = sorted(glob.glob(os.path.join(args.input_path, '*.[jpJP][pnPN]*[gG]')))
         result_root = f'results/{os.path.basename(args.input_path)}'
 
-    if not args.output_path is None: # set output path
+    if args.output_path is not None: # set output path
         result_root = args.output_path
 
     test_img_num = len(input_img_list)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # ------------------ set up CodeFormer restorer -------------------
     net = ARCH_REGISTRY.get('CodeFormer')(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9, 
                                             connect_list=['32', '64', '128']).to(device)
-    
+
     # ckpt_path = 'weights/CodeFormer/codeformer.pth'
     ckpt_path = load_file_from_url(url=pretrain_model_url, 
                                     model_dir='weights/CodeFormer', progress=True, file_name=None)

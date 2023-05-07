@@ -52,8 +52,10 @@ class CodeFormerIdxModel(SRModel):
             for param in self.hq_vqgan_fix.parameters():
                 param.requires_grad = False
         else:
-            raise NotImplementedError(f'Shoule have network_vqgan config or pre-calculated latent code.')
-        
+            raise NotImplementedError(
+                'Shoule have network_vqgan config or pre-calculated latent code.'
+            )
+
         logger.info(f'Need to generate latent GT code: {self.generate_idx_gt}')
 
         self.hq_feat_loss = train_opt.get('use_hq_feat_loss', True)
@@ -169,13 +171,12 @@ class CodeFormerIdxModel(SRModel):
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
+                elif self.opt['val']['suffix']:
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["val"]["suffix"]}.png')
                 else:
-                    if self.opt['val']['suffix']:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
-                    else:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["name"]}.png')
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["name"]}.png')
                 imwrite(sr_img, save_img_path)
 
             if with_metrics:
