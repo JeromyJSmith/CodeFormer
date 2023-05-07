@@ -30,7 +30,7 @@ class FFHQBlindDataset(data.Dataset):
         self.gt_size = opt.get('gt_size', 512)
         self.in_size = opt.get('in_size', 512)
         assert self.gt_size >= self.in_size, 'Wrong setting.'
-        
+
         self.mean = opt.get('mean', [0.5, 0.5, 0.5])
         self.std = opt.get('std', [0.5, 0.5, 0.5])
 
@@ -64,16 +64,16 @@ class FFHQBlindDataset(data.Dataset):
         # inpainting mask
         self.gen_inpaint_mask = opt.get('gen_inpaint_mask', False)
         if self.gen_inpaint_mask:
-            logger.info(f'generate mask ...')
-            # self.mask_max_angle = opt.get('mask_max_angle', 10)
-            # self.mask_max_len = opt.get('mask_max_len', 150)
-            # self.mask_max_width = opt.get('mask_max_width', 50)
-            # self.mask_draw_times = opt.get('mask_draw_times', 10)
-            # # print
-            # logger.info(f'mask_max_angle: {self.mask_max_angle}')
-            # logger.info(f'mask_max_len: {self.mask_max_len}')
-            # logger.info(f'mask_max_width: {self.mask_max_width}')
-            # logger.info(f'mask_draw_times: {self.mask_draw_times}')
+            logger.info('generate mask ...')
+                # self.mask_max_angle = opt.get('mask_max_angle', 10)
+                # self.mask_max_len = opt.get('mask_max_len', 150)
+                # self.mask_max_width = opt.get('mask_max_width', 50)
+                # self.mask_draw_times = opt.get('mask_draw_times', 10)
+                # # print
+                # logger.info(f'mask_max_angle: {self.mask_max_angle}')
+                # logger.info(f'mask_max_len: {self.mask_max_len}')
+                # logger.info(f'mask_max_width: {self.mask_max_width}')
+                # logger.info(f'mask_draw_times: {self.mask_draw_times}')
 
         # perform corrupt
         self.use_corrupt = opt.get('use_corrupt', True)
@@ -156,11 +156,11 @@ class FFHQBlindDataset(data.Dataset):
             components_bbox['right_eye'][0] = self.gt_size - components_bbox['right_eye'][0]
             components_bbox['nose'][0] = self.gt_size - components_bbox['nose'][0]
             components_bbox['mouth'][0] = self.gt_size - components_bbox['mouth'][0]
-        
+
         locations_gt = {}
         locations_in = {}
         for part in ['left_eye', 'right_eye', 'nose', 'mouth']:
-            mean = components_bbox[part][0:2]
+            mean = components_bbox[part][:2]
             half_len = components_bbox[part][2]
             if 'eye' in part:
                 half_len *= self.eye_enlarge_ratio

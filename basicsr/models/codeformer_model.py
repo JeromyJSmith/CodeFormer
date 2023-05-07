@@ -187,18 +187,16 @@ class CodeFormerModel(SRModel):
                     loss_dict['l_g_percep'] = l_g_percep
 
                 # gan loss
-                if  current_iter > self.net_d_start_iter:
+                if current_iter > self.net_d_start_iter:
                     fake_g_pred = self.net_d(self.output)
                     l_g_gan = self.cri_gan(fake_g_pred, True, is_disc=False)
                     recon_loss = l_g_pix + l_g_percep
                     if not self.fix_generator:
                         last_layer = self.net_g.module.generator.blocks[-1].weight
-                        d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
                     else:
                         largest_fuse_size = self.opt['network_g']['connect_list'][-1]
                         last_layer = self.net_g.module.fuse_convs_dict[largest_fuse_size].shift[-1].weight
-                        d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
-                    
+                    d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
                     d_weight *= self.scale_adaptive_gan_weight # 0.8
                     loss_dict['d_weight'] = d_weight
                     l_g_total += d_weight * l_g_gan
@@ -279,13 +277,12 @@ class CodeFormerModel(SRModel):
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
+                elif self.opt['val']['suffix']:
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["val"]["suffix"]}.png')
                 else:
-                    if self.opt['val']['suffix']:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
-                    else:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["name"]}.png')
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["name"]}.png')
                 imwrite(sr_img, save_img_path)
 
             if with_metrics:

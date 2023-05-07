@@ -55,10 +55,12 @@ class CodeFormerJointModel(SRModel):
             for param in self.hq_vqgan_fix.parameters():
                 param.requires_grad = False
         else:
-            raise NotImplementedError(f'Shoule have network_vqgan config or pre-calculated latent code.') 
-        
+            raise NotImplementedError(
+                'Shoule have network_vqgan config or pre-calculated latent code.'
+            ) 
+
         logger.info(f'Need to generate latent GT code: {self.generate_idx_gt}')
-        
+
         self.hq_feat_loss = train_opt.get('use_hq_feat_loss', True)
         self.feat_loss_weight = train_opt.get('feat_loss_weight', 1.0)
         self.cross_entropy_loss = train_opt.get('cross_entropy_loss', True)
@@ -178,7 +180,7 @@ class CodeFormerJointModel(SRModel):
         loss_dict = OrderedDict()
         if current_iter % self.net_d_iters == 0 and current_iter > self.net_g_start_iter:
             # hq_feat_loss
-            if not 'transformer' in self.opt['network_g']['fix_modules']:
+            if 'transformer' not in self.opt['network_g']['fix_modules']:
                 if self.hq_feat_loss: # codebook loss 
                     l_feat_encoder = torch.mean((quant_feat_gt.detach()-lq_feat)**2) * self.feat_loss_weight
                     l_g_total += l_feat_encoder
@@ -191,7 +193,7 @@ class CodeFormerJointModel(SRModel):
                     l_g_total += cross_entropy_loss
                     loss_dict['cross_entropy_loss'] = cross_entropy_loss
 
-            # pixel loss 
+            # pixel loss
             if not large_de: # when large degradation don't need image-level loss
                 if self.cri_pix:
                     l_g_pix = self.cri_pix(self.output, self.gt)
@@ -205,18 +207,16 @@ class CodeFormerJointModel(SRModel):
                     loss_dict['l_g_percep'] = l_g_percep
 
                 # gan loss
-                if  current_iter > self.net_d_start_iter:
+                if current_iter > self.net_d_start_iter:
                     fake_g_pred = self.net_d(self.output)
                     l_g_gan = self.cri_gan(fake_g_pred, True, is_disc=False)
                     recon_loss = l_g_pix + l_g_percep
                     if not self.fix_generator:
                         last_layer = self.net_g.module.generator.blocks[-1].weight
-                        d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
                     else:
                         largest_fuse_size = self.opt['network_g']['connect_list'][-1]
                         last_layer = self.net_g.module.fuse_convs_dict[largest_fuse_size].shift[-1].weight
-                        d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
-                    
+                    d_weight = self.calculate_adaptive_weight(recon_loss, l_g_gan, last_layer, disc_weight_max=1.0)
                     d_weight *= self.scale_adaptive_gan_weight # 0.8
                     loss_dict['d_weight'] = d_weight
                     l_g_total += d_weight * l_g_gan
@@ -229,26 +229,25 @@ class CodeFormerJointModel(SRModel):
             self.model_ema(decay=self.ema_decay)
 
         # optimize net_d
-        if not large_de:
-            if current_iter > self.net_d_start_iter:
-                for p in self.net_d.parameters():
-                    p.requires_grad = True
+        if not large_de and current_iter > self.net_d_start_iter:
+            for p in self.net_d.parameters():
+                p.requires_grad = True
 
-                self.optimizer_d.zero_grad()
-                # real
-                real_d_pred = self.net_d(self.gt)
-                l_d_real = self.cri_gan(real_d_pred, True, is_disc=True)
-                loss_dict['l_d_real'] = l_d_real
-                loss_dict['out_d_real'] = torch.mean(real_d_pred.detach())
-                l_d_real.backward()
-                # fake
-                fake_d_pred = self.net_d(self.output.detach())
-                l_d_fake = self.cri_gan(fake_d_pred, False, is_disc=True)
-                loss_dict['l_d_fake'] = l_d_fake
-                loss_dict['out_d_fake'] = torch.mean(fake_d_pred.detach())
-                l_d_fake.backward()
+            self.optimizer_d.zero_grad()
+            # real
+            real_d_pred = self.net_d(self.gt)
+            l_d_real = self.cri_gan(real_d_pred, True, is_disc=True)
+            loss_dict['l_d_real'] = l_d_real
+            loss_dict['out_d_real'] = torch.mean(real_d_pred.detach())
+            l_d_real.backward()
+            # fake
+            fake_d_pred = self.net_d(self.output.detach())
+            l_d_fake = self.cri_gan(fake_d_pred, False, is_disc=True)
+            loss_dict['l_d_fake'] = l_d_fake
+            loss_dict['out_d_fake'] = torch.mean(fake_d_pred.detach())
+            l_d_fake.backward()
 
-                self.optimizer_d.step()
+            self.optimizer_d.step()
 
         self.log_dict = self.reduce_loss_dict(loss_dict)
 
@@ -298,13 +297,12 @@ class CodeFormerJointModel(SRModel):
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
+                elif self.opt['val']['suffix']:
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["val"]["suffix"]}.png')
                 else:
-                    if self.opt['val']['suffix']:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
-                    else:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["name"]}.png')
+                    save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                             f'{img_name}_{self.opt["name"]}.png')
                 imwrite(sr_img, save_img_path)
 
             if with_metrics:

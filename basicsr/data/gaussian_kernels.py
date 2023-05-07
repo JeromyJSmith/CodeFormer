@@ -47,8 +47,7 @@ def pdf2(sigma_matrix, grid):
         kernel (ndarrray): un-normalized kernel.
     """
     inverse_sigma = np.linalg.inv(sigma_matrix)
-    kernel = np.exp(-0.5 * np.sum(np.dot(grid, inverse_sigma) * grid, 2))
-    return kernel
+    return np.exp(-0.5 * np.sum(np.dot(grid, inverse_sigma) * grid, 2))
 
 
 def cdf2(D, grid):
@@ -301,10 +300,7 @@ def random_bivariate_skew_Gaussian_center(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma_x, sigma_y, rotation, D
-    else:
-        return kernel
+    return (kernel, sigma_x, sigma_y, rotation, D) if strict else kernel
 
 
 def random_bivariate_anisotropic_Gaussian(kernel_size,
@@ -345,10 +341,7 @@ def random_bivariate_anisotropic_Gaussian(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma_x, sigma_y, rotation
-    else:
-        return kernel
+    return (kernel, sigma_x, sigma_y, rotation) if strict else kernel
 
 
 def random_bivariate_isotropic_Gaussian(kernel_size,
@@ -376,10 +369,7 @@ def random_bivariate_isotropic_Gaussian(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma
-    else:
-        return kernel
+    return (kernel, sigma) if strict else kernel
 
 
 def random_bivariate_generalized_Gaussian(kernel_size,
@@ -426,10 +416,7 @@ def random_bivariate_generalized_Gaussian(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma_x, sigma_y, rotation, beta
-    else:
-        return kernel
+    return (kernel, sigma_x, sigma_y, rotation, beta) if strict else kernel
 
 
 def random_bivariate_plateau_type1(kernel_size,
@@ -476,10 +463,7 @@ def random_bivariate_plateau_type1(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma_x, sigma_y, rotation, beta
-    else:
-        return kernel
+    return (kernel, sigma_x, sigma_y, rotation, beta) if strict else kernel
 
 
 def random_bivariate_plateau_type1_iso(kernel_size,
@@ -510,10 +494,7 @@ def random_bivariate_plateau_type1_iso(kernel_size,
             noise_range[0], noise_range[1], size=kernel.shape)
         kernel = kernel * noise
     kernel = kernel / np.sum(kernel)
-    if strict:
-        return kernel, sigma, beta
-    else:
-        return kernel
+    return (kernel, sigma, beta) if strict else kernel
 
 
 def random_mixed_kernels(kernel_list,

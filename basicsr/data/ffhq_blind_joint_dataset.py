@@ -148,11 +148,11 @@ class FFHQBlindJointDataset(data.Dataset):
             components_bbox['right_eye'][0] = self.gt_size - components_bbox['right_eye'][0]
             components_bbox['nose'][0] = self.gt_size - components_bbox['nose'][0]
             components_bbox['mouth'][0] = self.gt_size - components_bbox['mouth'][0]
-        
+
         locations_gt = {}
         locations_in = {}
         for part in ['left_eye', 'right_eye', 'nose', 'mouth']:
-            mean = components_bbox[part][0:2]
+            mean = components_bbox[part][:2]
             half_len = components_bbox[part][2]
             if 'eye' in part:
                 half_len *= self.eye_enlarge_ratio

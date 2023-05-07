@@ -54,7 +54,7 @@ class BaseModel():
         net_g_params = dict(net_g.named_parameters())
         net_g_ema_params = dict(self.net_g_ema.named_parameters())
 
-        for k in net_g_ema_params.keys():
+        for k in net_g_ema_params:
             net_g_ema_params[k].data.mul_(decay).add_(net_g_params[k].data, alpha=1 - decay)
 
     def get_current_log(self):
@@ -136,10 +136,10 @@ class BaseModel():
     def _get_init_lr(self):
         """Get the initial lr, which is set by the scheduler.
         """
-        init_lr_groups_l = []
-        for optimizer in self.optimizers:
-            init_lr_groups_l.append([v['initial_lr'] for v in optimizer.param_groups])
-        return init_lr_groups_l
+        return [
+            [v['initial_lr'] for v in optimizer.param_groups]
+            for optimizer in self.optimizers
+        ]
 
     def update_learning_rate(self, current_iter, warmup_iter=-1):
         """Update learning rate.
@@ -156,11 +156,10 @@ class BaseModel():
         if current_iter < warmup_iter:
             # get initial lr for each group
             init_lr_g_l = self._get_init_lr()
-            # modify warming-up learning rates
-            # currently only support linearly warm up
-            warm_up_lr_l = []
-            for init_lr_g in init_lr_g_l:
-                warm_up_lr_l.append([v / warmup_iter * current_iter for v in init_lr_g])
+            warm_up_lr_l = [
+                [v / warmup_iter * current_iter for v in init_lr_g]
+                for init_lr_g in init_lr_g_l
+            ]
             # set learning rate
             self._set_lr(warm_up_lr_l)
 
@@ -231,7 +230,7 @@ class BaseModel():
                 if crt_net[k].size() != load_net[k].size():
                     logger.warning(f'Size different, ignore [{k}]: crt_net: '
                                    f'{crt_net[k].shape}; load_net: {load_net[k].shape}')
-                    load_net[k + '.ignore'] = load_net.pop(k)
+                    load_net[f'{k}.ignore'] = load_net.pop(k)
 
     def load_network(self, net, load_path, strict=True, param_key='params'):
         """Load network.
@@ -313,7 +312,7 @@ class BaseModel():
                 torch.distributed.reduce(losses, dst=0)
                 if self.opt['rank'] == 0:
                     losses /= self.opt['world_size']
-                loss_dict = {key: loss for key, loss in zip(keys, losses)}
+                loss_dict = dict(zip(keys, losses))
 
             log_dict = OrderedDict()
             for name, value in loss_dict.items():
